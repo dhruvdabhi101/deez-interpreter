@@ -47,7 +47,7 @@ pub struct Lexer {
     ch: u8
 }
 impl Lexer {
-    fn new(input: String) -> Lexer {
+    pub fn new(input: String) -> Lexer {
         let mut lex = Lexer {
             position: 0 ,
             read_position: 0,
@@ -58,7 +58,7 @@ impl Lexer {
         lex
 
     }
-    fn next_token(&mut self) -> Result<Token> {
+    pub fn next_token(&mut self) -> Result<Token> {
         self.skip_whitespace();
 
         let tok = match self.ch {
@@ -112,7 +112,7 @@ impl Lexer {
         Ok(tok)
     }
 
-    fn peek(&self) -> u8 {
+     fn peek(&self) -> u8 {
         if self.read_position >= self.input.len() {
             0
         }else {
