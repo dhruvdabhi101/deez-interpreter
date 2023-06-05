@@ -3,7 +3,8 @@ use anyhow::Result;
 #[allow(dead_code)]
 #[derive(Debug, PartialEq)]
 
-
+#[derive(Clone)]
+#[derive(Eq)]
 pub enum Token {
     Ident(String),
     Int(String), 
@@ -112,7 +113,7 @@ impl Lexer {
         Ok(tok)
     }
 
-     fn peek(&self) -> u8 {
+     pub fn peek(&self) -> u8 {
         if self.read_position >= self.input.len() {
             0
         }else {
