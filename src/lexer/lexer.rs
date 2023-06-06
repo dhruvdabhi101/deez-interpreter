@@ -1,10 +1,8 @@
 use anyhow::Result;
 
 #[allow(dead_code)]
-#[derive(Debug, PartialEq)]
-
-#[derive(Clone)]
-#[derive(Eq)]
+#[derive(Clone, Hash, Debug)]
+#[derive(PartialEq, Eq)]
 pub enum Token {
     Ident(String),
     Int(String), 

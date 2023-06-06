@@ -6,27 +6,36 @@ pub struct Parser{
     pub lex: Lexer,
     pub cur_token: Token,
     pub peek_token: Token,
+    pub erros: Vec<String>
 }
 
-impl Parser { pub fn new(lex: Lexer) -> Parser {
+impl Parser { 
+    pub fn new(lex: Lexer) -> Parser {
         let mut p = Parser {
             lex: lex,
             cur_token: Token::Eof,
-            peek_token: Token::Eof
+            peek_token: Token::Eof,
+            erros: Vec::new()
         };
         p.next_token();
         p.next_token();
         return p;
     }
 
+    pub fn Errors(&self) -> Vec<String> {
+        self.erros.clone()
+    }
+
+    pub fn peek_error(&mut self, token: Token) {
+        let msg = format!("expected next token to be {:?}, got {:?} instead", token, self.peek_token);
+        self.erros.push(msg);
+    }
+
+
     pub fn next_token(&mut self){
         self.cur_token = self.peek_token.clone();
         self.peek_token = self.lex.next_token().unwrap_or(Token::Eof);
     }
-
-
-
-
 
     pub fn parse(&mut self) -> Vec<Statement> {
         let mut program: Vec<Statement> = Vec::new();
@@ -93,6 +102,7 @@ impl Parser { pub fn new(lex: Lexer) -> Parser {
                     self.next_token();
                     return true;
                 } else {
+                    self.peek_error(token);
                     return false;
                 }
             },
@@ -101,10 +111,12 @@ impl Parser { pub fn new(lex: Lexer) -> Parser {
                     self.next_token();
                     return true;
                 } else {
+                    self.peek_error(token);
                     return false;
                 }
             }
         }
+
     }
 
     fn cur_token_is(&self, token:Token) -> bool {
@@ -141,6 +153,17 @@ mod test {
         let mut p = Parser::new(lex);
         let program = p.parse();
 
+        if program.len() == 0 {
+            panic!("parse return 0");
+        }
+
+        if program.len() != 3 {
+            panic!("program does not contain 3 statements, got={}", program.len());
+        }
+
+
+        check_parser_errors(&p);
+
         assert_eq!(program.len(), 3);
         let tests = vec![
             "x",
@@ -169,5 +192,17 @@ mod test {
        Ok(()) 
 
     }
+    fn check_parser_errors(p: &Parser) {
+       let error = p.Errors();
+        if error.len() == 0 {
+            return 
+        }
+        println!("parser has {} errors", error.len());
+        for msg in error {
+            println!("parser error: {}", msg);
+        }
+        panic!();
+    }
+
 }
 
