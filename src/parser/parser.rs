@@ -1,3 +1,5 @@
+use std::mem;
+
 use crate::parser::ast::*;
 use crate::lexer::lexer::*;
 
@@ -53,6 +55,9 @@ impl Parser {
             Token::Let =>{
                 return Some(self.parse_let_statement().unwrap());
             },
+            Token::Return=> {
+                return Some(self.parse_return_statement().unwrap());
+            },
             _ => None
         }
     }
@@ -93,38 +98,33 @@ impl Parser {
         return Some(stmt);
     }
 
+    fn parse_return_statement(&mut self) -> Option<Statement> {
+        let stmt = Statement::ReturnStatement { token: self.cur_token.clone(), value: "".into() };
+        self.next_token();
+
+
+        //TODO: we're skipping the expression for now
+        while !self.cur_token_is(Token::Semicolon) {
+            self.next_token();
+        }
+        return Some(stmt);
+    }
+
 
     fn expect_peek(&mut self, token:Token) -> bool {
         // check if varient is same or not 
-        match self.peek_token {
-            Token::Ident(_) => {
-                if let Token::Ident(_) = token {
-                    self.next_token();
-                    return true;
-                } else {
-                    self.peek_error(token);
-                    return false;
-                }
-            },
-            _ => {
-                if self.peek_token == token {
-                    self.next_token();
-                    return true;
-                } else {
-                    self.peek_error(token);
-                    return false;
-                }
-            }
+        if mem::discriminant(&self.peek_token) == mem::discriminant(&token) {
+            self.next_token();
+            return true;
+        } else {
+            self.peek_error(token);
+            return false;
         }
 
     }
 
     fn cur_token_is(&self, token:Token) -> bool {
-        if self.cur_token == token {
-            true 
-        } else {
-            false
-        }
+        mem::discriminant(&self.cur_token) == mem::discriminant(&token)
     }
 
 
@@ -193,7 +193,7 @@ mod test {
 
     }
     fn check_parser_errors(p: &Parser) {
-       let error = p.Errors();
+        let error = p.Errors();
         if error.len() == 0 {
             return 
         }
@@ -203,6 +203,32 @@ mod test {
         }
         panic!();
     }
+    #[test]
+    fn test_return_statements() {
+        let input = r#"
+        return 5;
+        return 10;
+        return 993322;
+        "#;
+        let lex = Lexer::new(input.into());
+        let mut p = Parser::new(lex);
+        let program = p.parse();
+        if program.len() != 3 {
+            panic!("program does not contain 3 statements, got={}", program.len());
+        }
+        check_parser_errors(&p);
+        for stmt in program {
+            match stmt {
+                Statement::ReturnStatement { token: rtoken, value: _ } => {
+                    assert_eq!(rtoken, Token::Return);
+                },
+                _ => {
+                    panic!("not return statement");
+                }
+            }
+        }
+    }
+
 
 }
 

@@ -12,7 +12,12 @@ pub enum Statement {
     LetStatement {
         token: Token, // Let  Token 
         name: Identifier, 
-    }
+    },
+    ReturnStatement {
+        token: Token, // Return Token
+        value: String
+    },
+
 }
 #[derive(Debug)]
 #[derive(PartialEq, Eq)]
